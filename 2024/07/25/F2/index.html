@@ -13,18 +13,14 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="在这项工作中，我们引入了一种名为Faithful Finetuning（F2）的新颖方法，它通过在微调期间精心设计的损失函数显式地对忠实问答过程进行建模。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://only1cherish.github.io/img/F2flame.png">
 <meta property="og:image" content="https://only1cherish.github.io/img/en_span.png">
-<meta property="og:image" content="https://only1cherish.github.io/img/att_span.png">
-<meta property="og:image" content="https://only1cherish.github.io/img/F2_test1.png">
-<meta property="og:image" content="https://only1cherish.github.io/img/F2_test2.png">
 <meta property="article:published_time" content="2024-07-25T12:29:05.000Z">
-<meta property="article:modified_time" content="2024-07-25T13:02:40.609Z">
+<meta property="article:modified_time" content="2024-07-25T13:08:11.282Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="大语言模型">
 <meta property="article:tag" content="幻觉问题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://only1cherish.github.io/img/F2flame.png">
+<meta name="twitter:image" content="https://only1cherish.github.io/img/en_span.png">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -166,10 +162,7 @@
 <li>F2利用加权目标和针对性微调，关注包括幻觉倾向的热点，如span和层。这些加权目标强调了LLMs倾向于产生幻觉的跨度。</li>
 </ul>
 </li>
-<li>示意图<ul>
-<li><img src="/img/F2flame.png" alt="header"></li>
-</ul>
-</li>
+<li><h2 id="示意图"><a href="#示意图" class="headerlink" title="示意图"></a>示意图</h2></li>
 </ul>
 </li>
 <li><p>具体实现</p>
@@ -236,13 +229,10 @@
 <li><p>𝐿𝐴(𝜙)&#x3D;𝐿𝑊𝐶𝐸(𝜙,𝑤𝑒𝑛𝑡,𝐷𝐹𝑄𝐴)LA(ϕ)&#x3D;LWCE(ϕ,went,DFQA)，其中𝑤𝑎𝑡𝑡𝑛𝑖&#x3D;{𝛼,if 𝑖∈span𝑎𝑡𝑡𝑛1,otherwisewattni&#x3D;{α,1,if i∈spanattnotherwise</p>
 </li>
 <li><p>𝑠𝑝𝑎𝑛𝑎𝑡𝑡𝑛spanattn生成过程：</p>
+<p>- </p>
 <ul>
-<li><p><img src="/img/att_span.png" alt="header"></p>
-</li>
-<li><p>最大池化，可以从注意力矩阵中提取每个输入标记在生成所有输出标记时的最大注意力权重。这有助于识别文本中的关键部分，如实体或重要概念。最大池化的结果被用来构建一个加权图。</p>
-</li>
-<li><p>PageRank是一种用于衡量网络中节点重要性的算法，被用来衡量文本中各个标记的重要性，基于它们在整个文本结构中的连接和相互作用。</p>
-</li>
+<li>最大池化，可以从注意力矩阵中提取每个输入标记在生成所有输出标记时的最大注意力权重。这有助于识别文本中的关键部分，如实体或重要概念。最大池化的结果被用来构建一个加权图。</li>
+<li>PageRank是一种用于衡量网络中节点重要性的算法，被用来衡量文本中各个标记的重要性，基于它们在整个文本结构中的连接和相互作用。</li>
 </ul>
 </li>
 </ul>
@@ -288,8 +278,17 @@
 <li>表示编辑（Representation Editing）：ITI、TrFr、TruthX、F2</li>
 </ul>
 </li>
-<li><h2 id="测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。-TruthfulQA-F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。-F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）-FACTOR-LLAMA2-7B-TRUTHX-F2有效地缓解了LLAMA2-7B-TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61-06提高到63-66，展示了F2方法的鲁棒性。"><a href="#测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。-TruthfulQA-F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。-F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）-FACTOR-LLAMA2-7B-TRUTHX-F2有效地缓解了LLAMA2-7B-TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61-06提高到63-66，展示了F2方法的鲁棒性。" class="headerlink" title="测试结果- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。  - - TruthfulQA  - F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。  - F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）- FACTOR  - LLAMA2-7B+TRUTHX+F2有效地缓解了LLAMA2-7B+TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61.06提高到63.66，展示了F2方法的鲁棒性。"></a>测试结果<br>- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。<br>  - <img src="/img/F2_test1.png" alt="header"><br>- TruthfulQA<br>  - F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。<br>  - F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）<br>- FACTOR<br>  - LLAMA2-7B+TRUTHX+F2有效地缓解了LLAMA2-7B+TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61.06提高到63.66，展示了F2方法的鲁棒性。</h2><ul>
-<li><img src="/img/F2_test2.png" alt="header"></li>
+<li><h2 id="测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。"><a href="#测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。" class="headerlink" title="测试结果- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。"></a>测试结果<br>- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。</h2><ul>
+<li>TruthfulQA<ul>
+<li>F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。</li>
+<li>F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）</li>
+</ul>
+</li>
+<li>FACTOR<ul>
+<li>LLAMA2-7B+TRUTHX+F2有效地缓解了LLAMA2-7B+TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61.06提高到63.66，展示了F2方法的鲁棒性。</li>
+</ul>
+</li>
+<li>- </li>
 <li>分解问答目标(LQA(ϕ) + LFQA(ϕ) + LR(ϕ))相比LQA(ϕ)，分别额外提高了0.5和1.0个百分点，验证了所提出的多目标分解的有效性。</li>
 <li>LF2(ϕ)的结果表明，基于注意力的加权策略在所有三个指标中取得了平衡。(说服力？)</li>
 <li>对大模型生成速度的影响是否需要测试？</li>
@@ -300,7 +299,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://only1cherish.github.io/2024/07/25/F2/" data-id="clz1afczl000154v450l03l5o" data-title="Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://only1cherish.github.io/2024/07/25/F2/" data-id="clz1ahdyp00006gv47y8c803r" data-title="Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
