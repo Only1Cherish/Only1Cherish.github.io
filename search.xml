@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉</title>
+      <link href="/2024/07/25/F2/"/>
+      <url>/2024/07/25/F2/</url>
+      
+        <content type="html"><![CDATA[<p>在这项工作中，我们引入了一种名为Faithful Finetuning（F2）的新颖方法，它通过在微调期间精心设计的损失函数显式地对忠实问答过程进行建模。</p><span id="more"></span>        <p>原文地址：[<a href="https://arxiv.org/abs/2406.11267">2406.11267] Mitigating Large Language Model Hallucination with Faithful Finetuning (arxiv.org)</a></p><h3 id="背景（WHY？为什么需要这个技术？）"><a href="#背景（WHY？为什么需要这个技术？）" class="headerlink" title="背景（WHY？为什么需要这个技术？）"></a><strong>背景（WHY？为什么需要这个技术？）</strong></h3><ul><li><p>幻觉问题</p><ul><li><p>是什么：幻觉（Hallucinations）是指语言模型在生成文本时出现的不真实、与事实不符的现象，即使文本在语法和语义上看起来是流畅和合理的。</p></li><li><p>分类</p><ul><li>外源性幻觉：包含事实错误或不存在的实体</li><li>内源性幻觉：虽然事实正确但与任务无关</li></ul></li><li><p>产生原因：幻觉可能由多种因素引起</p><ul><li>模型对自身输出的过度依赖</li><li>为追求文本流畅性而牺牲准确性</li><li>模型训练阶段累积的知识所固有的不确定性。</li></ul></li><li><p><strong>减轻幻觉的策略</strong>：多关注于检测幻觉而非生成过程中的减轻</p><p>可以在不需要进行广泛的结构修改或全面重新训练模型的情况下，显著减轻幻觉。（<a href="https://aclanthology.org/2023.emnlp-main.551.pdf">Detecting and Mitigating Hallucinations in Multilingual Summarisation</a>）</p><ul><li>隐式编辑LLMs的行为（通过间接的方式影响或LLM的生成过程或决策，而这些改变并不是直接对模型的参数或架构进行调整）<ul><li><strong>自我完善（Self Refinement）</strong>：通过反馈和推理机制，模型在生成回答后能够进行自我评估和改进。</li><li><strong>提示调整（Prompt Tuning）</strong>：调整提示以改善模型的响应，这涉及到在输入中加入特定的指导性语言，以引导模型生成更准确的回答。</li></ul></li><li>在解码过程中抑制输出不诚实结果的倾向（输出检测）</li></ul></li></ul></li><li><p><strong>忠诚微调 Faithful Finetuning（F2）</strong></p><ul><li><p>是什么：通过在微调过程中明确设计损失函数来显式地对忠诚问答过程进行评估。通过改善LLM本身的缺陷来减轻幻觉</p></li><li><p>贡献：</p><ul><li><p>多目标分解： 将传统的问答目标分解为内部事实检索和事实基础的问答两个明确的子目标。</p></li><li><p>针对性微调： 设计了一种针对性的微调方法，专注于通过实体基础和注意力基础启发式识别的热点。</p></li><li><p>幻觉倾向层的选择： 选择LLM结构中容易幻觉的层进行特定的微调，以减少幻觉的发生。</p></li><li><p>显式损失设计：通过精心设计的损失函数来提高模型的忠实度和真实性，这种方法在提高LLMs的可信度方面显示出了有效性。</p></li></ul></li></ul></li></ul><h3 id="忠诚微调-Faithful-Finetuning（WHAT-什么是诚实微调？）"><a href="#忠诚微调-Faithful-Finetuning（WHAT-什么是诚实微调？）" class="headerlink" title="忠诚微调 Faithful Finetuning（WHAT? 什么是诚实微调？）"></a><strong>忠诚微调 Faithful Finetuning（WHAT? 什么是诚实微调？）</strong></h3><ul><li><p>框架结构</p><ul><li>提高问答（QA）模型的忠实度而明确两个子目标<ul><li><strong>内部事实检索</strong>（ Internal Fact Retrieval:）：训练模型有效地检索并利用其内部知识来产生忠实的答案。</li><li><strong>事实基础的QA</strong>（ Fact-grounded QA）：训练模型提供以事实信息为基础的答案。</li></ul></li><li>从输出概率的角度进行幻觉行为的观察，在事实检索期间对幻觉倾向区域进行针对性训练<ul><li>F2利用加权目标和针对性微调，关注包括幻觉倾向的热点，如span和层。这些加权目标强调了LLMs倾向于产生幻觉的跨度。</li></ul></li><li>示意图<ul><li><img src="/img/F2flame.png" alt="header"></li></ul></li></ul></li><li><p>具体实现</p><ul><li><p><strong>多目标分解以实现忠实的问答</strong></p><ul><li><p>传统的QA目标（Vanilla QA Objective）：通过优化交叉熵损失𝐿𝑄𝐴(𝜙)LQA(ϕ)来增加给定问题𝑞的条件概率𝑎</p><ul><li><p>𝐿𝑄𝐴(𝜙)&#x3D;−𝐸(𝑘,𝑞,𝑎)∼𝐷𝐹𝑄𝐴[log⁡𝜏𝜙(𝑎∣𝑞)]LQA(ϕ)&#x3D;−E(k,q,a)∼DFQA[logτϕ(a∣q)]用于衡量模型预测的概率分布与真实答案的概率分布之间的差异</p><p>𝐸：期望值，这里指在整个数据集𝐷𝐹𝑄𝐴上的平均。 (𝑘,𝑞,𝑎)：一个训练实例，其中𝑘是与问题𝑞相关的事实基础，𝑎是对应的答案。 𝐷𝐹𝑄𝐴：QA任务的训练数据集。 𝜏𝜙(𝑎∣𝑞)：给定问题𝑞时，由参数𝜙决定的自回归语言模型生成答案𝑎的概率分布。 log⁡：自然对数，用于损失函数中以增加对错误预测的惩罚。</p></li></ul></li><li><p>实事检索目标（Fact Retrieval Objective）：增强LMs访问其内部记忆并在自我包含的方式下基于问题𝑞检索相关和事实知识𝑘的能力</p><ul><li><p>𝐿𝑅(𝜙)&#x3D;−𝐸(𝑘,𝑞,𝑎)∼𝐷𝐹𝑄𝐴[log⁡𝜏𝜙(𝑘∣𝑞)]LR(ϕ)&#x3D;−E(k,q,a)∼DFQA[logτϕ(k∣q)]</p><p>τΦ(k∣q) 表示在给定问题 𝑞 下，模型参数 Φ 所检索的事实 𝑘的概率分布。</p></li></ul></li><li><p>事实基础的问答FQA目标（Fact-grounded QA Objective）：用来鼓励语言模型生成与从其内部记忆检索到的事实𝑘紧密相关的答案𝑎</p><ul><li><p>损失函数定义为：𝐿𝐹𝑄𝐴(𝜙)&#x3D;−𝐸(𝑘,𝑞,𝑎)∼𝐷𝐹𝑄𝐴[log⁡𝜏𝜙(𝑎∣𝑞,𝑘)]LFQA(ϕ)&#x3D;−E(k,q,a)∼DFQA[logτϕ(a∣q,k)]</p><p>𝜏𝜙(𝑞∣𝑘) 是给定事实𝑘k时，问题𝑞的概率，这可以被理解为问题与事实之间的相关性。</p></li><li><p>结合𝐿𝑅(𝜙)，𝐿𝑅(𝜙)+𝐿𝐹𝑄𝐴(𝜙)最小化联合损失，使得模型在给定问题时能够检索正确的事实，并且基于这些事实生成准确的答案。𝐿𝑅(𝜙)+𝐿𝐹𝑄𝐴(𝜙)&#x3D;−𝐸(𝑘,𝑞,𝑎)∼𝐷𝐹𝑄𝐴{log⁡[𝜏𝜙(𝑎∣𝑞,𝑘)×𝜏𝜙(𝑞∣𝑘)]}LR(ϕ)+LFQA(ϕ)&#x3D;−E(k,q,a)∼DFQA{log[τϕ(a∣q,k)×τϕ(q∣k)]}(?)</p></li></ul></li></ul></li><li><p><strong>针对性训练幻觉热点</strong>(Targeted Training on Hallucination Hotspots)</p><p><strong>针对性微调</strong>：专注于模型在生成回答时特别容易出错的部分。 <strong>幻觉热点</strong>：指在训练数据中，模型特别容易产生不真实或与事实不符回答的文本标签(span)</p><ul><li><p><strong>实体基础启发</strong>（ Entity-based Heuristics）：利用加权交叉熵（Weighted Cross Entropy, WCE）损失函数</p><p>Pagnoni等人和Kryscinski等人的研究表明，在文本生成任务中，实体是最常被幻觉或虚构的词汇类型。这一发现与人们的直觉相符，即在评估生成文本的真实性时，人们倾向于主要关注关键词。</p><ul><li><p>𝐿𝑊𝐶𝐸(𝜙,𝑤,𝐷)&#x3D;−𝐸(𝑘,𝑞,𝑎)∼𝐷[𝜏𝑊𝐶𝐸(𝑘∣𝑞,𝑤)]LWCE(ϕ,w,D)&#x3D;−E(k,q,a)∼D[τWCE(k∣q,w)]， 其中𝜏𝑊𝐶𝐸(𝑘∣𝑞,𝑤)&#x3D;∑𝑖&#x3D;1∣𝑘∣𝑤𝑖log⁡𝑝(𝑘𝑖∣𝑞,𝑘1,…,𝑘𝑖−1)τWCE(k∣q,w)&#x3D;∑i&#x3D;1∣k∣wilogp(ki∣q,k1,…,ki−1)模型给定问题 𝑞和权重 𝑤时，事实 𝑘的条件概率分布</p><p>𝐿𝑊𝐶𝐸(𝜙,𝑤,𝐷)这是损失函数的一般形式，上标 𝑊𝐶𝐸 表示这是加权的版本，即某些输出的概率会受到比其他概率更大的权重影响。 𝜙表示模型的参数。 𝑤是权重向量，用于在损失函数中加权不同的概率输出。 𝐷是训练数据集。 𝐸(𝑘,𝑞,𝑎)∼𝐷 表示对从数据集 𝐷 中抽取的样本 (𝑘,𝑞,𝑎)取期望。 ∑表示对 𝑘 中的每个元素 𝑘求和。 𝑤𝑖是与元素 𝑘𝑖相关的权重。 log ⁡𝑝(𝑘𝑖∣𝑞,𝑘1,…,𝑘𝑖−1) 是在已知问题 𝑞 和先前事实 𝑘1,…,𝑘𝑖−1 的条件下，元素 𝑘𝑖的对数概率。</p></li><li><p>使用 Spacy 识别命名实体标签（NER）</p><ul><li><p>𝐿𝐸(𝜙)&#x3D;𝐿𝑊𝐶𝐸(𝜙,𝑤𝑒𝑛𝑡,𝐷𝐹𝑄𝐴)LE(ϕ)&#x3D;LWCE(ϕ,went,DFQA)——𝐿𝑊𝐶𝐸LWCE 的一个特例，其中权重 𝑤 被特定为 𝑤𝑒𝑛𝑡went，这是基于实体的权重。</p><p>𝐷𝐹𝑄𝐴 是用于问答任务的事实基础数据集。</p></li><li><p>𝑤𝑒𝑛𝑡𝑖&#x3D;{𝛼,if 𝑖∈span𝑒𝑛𝑡1,otherwisewenti&#x3D;{α,1,if i∈spanentotherwise</p><p>如果索引 𝑖i 在实体跨度 span𝑒𝑛𝑡 内，权重被设为 𝛼（一个大于1的系数，表示增加的重要性）。如果索引 𝑖不在实体跨度内，权重则为1，表示这个元素的重要性是正常的。</p></li><li><p>生成的过程：</p><ul><li><img src="/img/en_span.png" alt="header"></li></ul></li><li><p>最后得到了具有实体基础启发的最终损失设计（loss design）：𝐿𝐸𝑡𝑎𝑔(𝜙)&#x3D;𝐿𝑊𝐶𝐸(𝜙,𝑤𝑒𝑛𝑡,𝐷𝐹𝑄𝐴𝑡𝑎𝑔)LEtag(ϕ)&#x3D;LWCE(ϕ,went,DFQAtag)</p></li></ul></li></ul></li><li><p><strong>注意力基础启发式</strong>（Attention-based Heuristics）</p><ul><li><p>具有高注意力得分的跨度赋予更高的权重</p><ul><li><p>𝐿𝐴(𝜙)&#x3D;𝐿𝑊𝐶𝐸(𝜙,𝑤𝑒𝑛𝑡,𝐷𝐹𝑄𝐴)LA(ϕ)&#x3D;LWCE(ϕ,went,DFQA)，其中𝑤𝑎𝑡𝑡𝑛𝑖&#x3D;{𝛼,if 𝑖∈span𝑎𝑡𝑡𝑛1,otherwisewattni&#x3D;{α,1,if i∈spanattnotherwise</p></li><li><p>𝑠𝑝𝑎𝑛𝑎𝑡𝑡𝑛spanattn生成过程：</p><ul><li><p><img src="/img/att_span.png" alt="header"></p></li><li><p>最大池化，可以从注意力矩阵中提取每个输入标记在生成所有输出标记时的最大注意力权重。这有助于识别文本中的关键部分，如实体或重要概念。最大池化的结果被用来构建一个加权图。</p></li><li><p>PageRank是一种用于衡量网络中节点重要性的算法，被用来衡量文本中各个标记的重要性，基于它们在整个文本结构中的连接和相互作用。</p></li></ul></li></ul></li><li><p>合并权重：将𝑤𝑎𝑡𝑡𝑛wattn和𝑤𝑒𝑛𝑡went合并为𝑤𝑎𝑡𝑡𝑛∪𝑒𝑛𝑡wattn∪ent</p><ul><li>𝐿𝐴∪𝐸(𝜙)&#x3D;𝐿𝑊𝐶𝐸(𝜙,𝑤𝑎𝑡𝑡𝑛∪𝑒𝑛𝑡,𝐷𝐹𝑄𝐴)LA∪E(ϕ)&#x3D;LWCE(ϕ,wattn∪ent,DFQA)，其中𝑤𝑎𝑡𝑡𝑛∪𝑒𝑛𝑡𝑖&#x3D;{𝛼,if 𝑖∈span𝑎𝑡𝑡𝑛∪𝑒𝑛𝑡1,otherwisewattn∪enti&#x3D;{α,1,if i∈spanattn∪entotherwise</li></ul></li><li><p>我们得到忠实微调中的最终微调目标形式</p><ul><li>𝐿𝐹2𝑡𝑎𝑔(𝜙)&#x3D;𝐿𝑄𝐴𝑡𝑎𝑔(𝜙)+𝐿𝐹𝑄𝐴𝑡𝑎𝑔(𝜙)+𝐿𝐴∪𝐸𝑡𝑎𝑔(𝜙)LF2tag(ϕ)&#x3D;LQAtag(ϕ)+LFQAtag(ϕ)+LA∪Etag(ϕ)，LtagQA和LtagFQA是使用标记训练集DtagFQA的前述损失LQA和LFQA</li></ul></li></ul></li></ul></li><li><p><strong>微调幻觉倾向层</strong></p><ul><li>采用了TruthX方法，仅对与幻觉最强烈相关的前10个模块进行微调，这些模块是通过在验证集上的探测精度确定的。</li></ul></li></ul></li></ul><h3 id="实验总结（HOW-效果怎么样？）"><a href="#实验总结（HOW-效果怎么样？）" class="headerlink" title="实验总结（HOW? 效果怎么样？）"></a><strong>实验总结（HOW? 效果怎么样？）</strong></h3><ul><li>数据集<ul><li><strong>HaluEval</strong>、<strong>TruthfulQA、FACTOR</strong></li><li>训练集（HaluEval）在领域上与测试集（TruthfulQA和FACTOR）完全不同。可以验证F2方法的鲁棒性。</li></ul></li><li>评价指标<ul><li><strong>MC1</strong>：在真实和虚假的参考答案集中，我们需要选择最佳的正确答案。MC1是通过语言模型是否将最高的可能性分配给最佳正确答案而不是错误答案来计算的，这是基于给定问题的情况。</li><li><strong>MC2</strong>：MC2是真实参考答案的总归一化概率。该分数是正确答案的概率质量。</li><li><strong>MC3</strong>：MC3是通过语言模型是否将更高的可能性分配给正确答案而不是错误答案来计算的。</li><li>对于FACTOR数据集，简单地使用选择准确率作为度量指标</li></ul></li><li>对比基线方法<ul><li>基础LLMs（BaseLLMs）：Llama-2-7B</li><li>对比解码（Contrastive Decoding）：CD、 DoLa、 SH2、ICD</li><li>表示编辑（Representation Editing）：ITI、TrFr、TruthX、F2</li></ul></li><li><h2 id="测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。-TruthfulQA-F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。-F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）-FACTOR-LLAMA2-7B-TRUTHX-F2有效地缓解了LLAMA2-7B-TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61-06提高到63-66，展示了F2方法的鲁棒性。"><a href="#测试结果-最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。-TruthfulQA-F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。-F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）-FACTOR-LLAMA2-7B-TRUTHX-F2有效地缓解了LLAMA2-7B-TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61-06提高到63-66，展示了F2方法的鲁棒性。" class="headerlink" title="测试结果- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。  - - TruthfulQA  - F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。  - F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）- FACTOR  - LLAMA2-7B+TRUTHX+F2有效地缓解了LLAMA2-7B+TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61.06提高到63.66，展示了F2方法的鲁棒性。"></a>测试结果<br>- 最高值用加粗表示，第二高值用下划线标注，第三高值用波浪下划线标注。<br>  - <img src="/img/F2_test1.png" alt="header"><br>- TruthfulQA<br>  - F2方法单独并不能像结果中显示的其他方法提供大的性能改进。这可能归因于LoRa微调是一种相对保守的模型优化方式，与表示编辑方法如ITI和TRUTHX不同。<br>  - F2方法与TRUTHX方法可以互补，而不是相互冲突，且结合效果良好（或许可以和其他的表示编辑方法结合？）<br>- FACTOR<br>  - LLAMA2-7B+TRUTHX+F2有效地缓解了LLAMA2-7B+TRUTHX在News子集上的性能下降，同时将Wiki的准确率从61.06提高到63.66，展示了F2方法的鲁棒性。</h2><ul><li><img src="/img/F2_test2.png" alt="header"></li><li>分解问答目标(LQA(ϕ) + LFQA(ϕ) + LR(ϕ))相比LQA(ϕ)，分别额外提高了0.5和1.0个百分点，验证了所提出的多目标分解的有效性。</li><li>LF2(ϕ)的结果表明，基于注意力的加权策略在所有三个指标中取得了平衡。(说服力？)</li><li>对大模型生成速度的影响是否需要测试？</li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 论文阅读 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 大语言模型 </tag>
+            
+            <tag> 幻觉问题 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>论文阅读:A Pathway Towards Responsible AI Generated Content</title>
+      <link href="/2024/07/14/a/"/>
+      <url>/2024/07/14/a/</url>
+      
+        <content type="html"><![CDATA[<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>AI生成内容（AIGC）在过去几年里受到了极大的关注，内容形式包括图像、文本、音频、视频等。同时，AIGC也成了一把双刃剑，最近因其负责任的使用而受到大量批评。在本文中，我们集中讨论了可能阻碍AIGC在实践中健康发展和部署的8个主要问题，包括来自（1）隐私；（2）偏见、毒性、错误信息；（3）知识产权（IP）；（4）鲁棒性；（5）开源和解释；（6）技术滥用；（7）同意、归属和补偿；（8）环境的风险。此外，我们还提供了应对这些风险的有希望的发展方向，以便在构建生成模型时更负责任地使用AIGC。</p><span id="more"></span>     <p>论文链接：[<a href="https://arxiv.org/abs/2303.01325">2303.01325] A Pathway Towards Responsible AI Generated Content (arxiv.org)</a></p><h4 id="基于大模型地生成式AI广泛应用于各个领域，常见的AIGC类型有"><a href="#基于大模型地生成式AI广泛应用于各个领域，常见的AIGC类型有" class="headerlink" title="基于大模型地生成式AI广泛应用于各个领域，常见的AIGC类型有"></a>基于大模型地生成式AI广泛应用于各个领域，常见的AIGC类型有</h4><p>（1）文本到图像（OpenAI的DALL·E模型、Stable Diffusion）</p><p>（2）图像到图像（Diffusion Model）</p><p>（3）文本到视频（Runway、Make-A-Video、Imagen Video和Phenaki等模型）</p><p>（4）特定应用领域：Stable Diffusion可应用于多个特殊领域，如医学成像、音乐生成</p><p>（5）文本生成：当前比较流行的领域</p><h4 id="由AIGC引起的部分争端包括："><a href="#由AIGC引起的部分争端包括：" class="headerlink" title="由AIGC引起的部分争端包括："></a>由AIGC引起的部分争端包括：</h4><p>（1）AIGC是独特的创意作品还是训练集内容的简单复制？</p><p>（2）AIG模型拥有记忆能力，存在直接从训练数据复制数据的风险，可能涉及侵犯隐私权。</p><p>（3）模型依赖于基于互联网的大量数据进行训练，可能具有刻板印象、偏见，会产生错误的信息。</p><h4 id="以下具体分析AIGC在实践中的8个主要问题："><a href="#以下具体分析AIGC在实践中的8个主要问题：" class="headerlink" title="以下具体分析AIGC在实践中的8个主要问题："></a>以下具体分析AIGC在实践中的8个主要问题：</h4><h5 id="（1）隐私问题"><a href="#（1）隐私问题" class="headerlink" title="（1）隐私问题"></a>（1）隐私问题</h5><p>产生原因：</p><ul><li>在基础模型中，攻击者可以从训练模型中生成序列，找到模型记忆的数据集中的内容。</li><li>研究表明，如果一个序列在训练数据中多次出现，它被生成的可能性比只出现一次的序列要大。这表明，在对隐私敏感的应用中，去重可以作为一种可能的对策。</li><li>在生成模型中，训练数据是从网络上抓取的，会涉及过拟合和隐私泄露问题。如，部分生成图像AI记忆训练集内容，生成内容只是训练集中对象和背景结合。</li><li>文本生成AI会输出与训练集同语义的内容。图像反刍现象也是由于数据集中的图像被多次复制所致。</li></ul><p>当前措施：</p><ul><li>支持用户查验图片是否进入训练集，在训练中去重以减少数据的复制，预防隐私泄露。</li><li>禁止向模型共享敏感数据。</li><li>利用差分隐私扩散模型、联邦学习技术来保护隐私</li></ul><p>待解决问题：</p><ul><li>探索在生成模型中复制数据的更可靠检测系统，以及进一步研究当前和未来AIGC模型中的记忆和泛化。</li><li>设计评估标准，用于生成图像的隐私评估。</li></ul><h5 id="（2）偏见、有害、错误信息"><a href="#（2）偏见、有害、错误信息" class="headerlink" title="（2）偏见、有害、错误信息"></a>（2）偏见、有害、错误信息</h5><p> 产生原因：</p><ul><li>数据集中包含与社会刻板印象、色情物理、种族主义诽谤和暴力相关的内容，经过过滤的数据仍然会包含部分，这可能会被用于生成不良内容。</li><li>在有问题的数据集上训练、学习或微调的模型可能会继承这些不良信息。</li><li>当 AIGC 模型还存在提供错误信息的风险，会在在学校，法律、医疗领域，天气预报等方面产生误导。</li><li>AI幻觉问题产生的原因有训练数据不足、过时或质量低下、过拟合、使用成语或俚语表达、敌意攻击。</li></ul><p>当前措施：</p><ul><li>不仅要对数据源进行过滤，还需要在数据使用、训练的整个生命周期中评估偏见和有害内容。</li><li>为解决幻觉问题可以限制可能的结果、为模型创建一个数据模板以供遵循、给AI一个特定的角色，并告诉它不要撒谎、 告诉它你想要什么和不想要什么、尝试控制模型结果随机性的“温度”、定期更新AIGC模型使用的训练语料库。</li></ul><p>待解决问题：如何定义一个真正公平且无害的数据集。</p><h5 id="（3）IP保护问题"><a href="#（3）IP保护问题" class="headerlink" title="（3）IP保护问题"></a>（3）IP保护问题</h5><p> 产生原因：</p><ul><li>对数据收集、使用、权利确认和数据商业使用的规定不明确</li><li>需要为缴费者建立公平的利益分配机制</li><li>世界范围内对AIGC版权缺乏统一的法律理解，权属纠纷仍未解决</li><li>难以识别用于训练AIGC模型的所有原始作品。</li></ul><p>解决方法：</p><ul><li>创作者可选择是否将自己的作品移出数据集，开发用于辅助鉴别AI生成内容的产品。</li><li>生成内容水印。</li></ul><h5 id="（4）鲁棒性"><a href="#（4）鲁棒性" class="headerlink" title="（4）鲁棒性"></a>（4）鲁棒性</h5><p> 产生原因：</p><ul><li>大型基础模型在训练时被植入后门，这会导致在特定触发条件下产生恶意输出。</li><li>其次，“越狱攻击”通过精心设计的提示绕过伦理防护，使模型产生不当响应。</li></ul><p>解决方法：研究者提出了自我提醒技术，该技术可以在不重新训练的情况下有效防御。</p><h5 id="（5）开源和解释"><a href="#（5）开源和解释" class="headerlink" title="（5）开源和解释"></a>（5）开源和解释</h5><p> AIGC技术的开源和透明度对于确保其健康发展至关重要。目前，许多公司不愿公开他们的模型或代码。不透明性导致难以解释模型为何产生特定的输出，以及模型如何在不同阶段放大社会和文化偏见。例如，DALL·E 2等模型可能会记忆训练数据，但具体机制并不清楚。</p><p>开源可以促进对AIGC模型行为的理解和解释，帮助社区评估技术的风险和收益。尽管如此，开源也带来了风险，比如开源模型可能被用于商业或恶意目的。</p><h5 id="（6）限制技术滥用"><a href="#（6）限制技术滥用" class="headerlink" title="（6）限制技术滥用"></a>（6）限制技术滥用</h5><p>   具体表现：</p><ul><li><p>技术滥用可能被用于制造和传播假新闻、恶作剧、深度伪造内容等恶意行为，对社会和个人造成负面影响。例如，Stable Diffusion被用于生成虚假的色情图片</p></li><li><p>ChatGPT可能被学生用于完成作业，损害了学术诚信。</p></li><li><p>此外，AIGC的输出可能包含偏见和不准确信息，影响其可靠性。</p><p> 解决方法：</p></li><li><p>必须在能够控制或纠正风险的情况下使用AIGC。</p></li><li><p>需要尽快为AIGC模型建立治理机制，包括制定法律法规，以确保技术的安全和负责任使用。</p></li><li><p>通过开源，可以促进对模型行为的理解和解释，帮助社区评估技术的风险和收益。然而，开源也带来了风险，需要谨慎管理，以防止技术被用于不当目的。</p></li></ul><h5 id="（7）许可、信誉和补偿"><a href="#（7）许可、信誉和补偿" class="headerlink" title="（7）许可、信誉和补偿"></a>（7）许可、信誉和补偿</h5><p> 具体表现：模型的训练都是在未获得原始数据贡献者同意或给予信用和补偿的情况下进行的。而数据贡献者的作品在他们不知情或未经同意的情况下被AI模型学习并被其他用户用于盈利，这损害了原始数据贡献者的利益。</p><p>解决方法：</p><ul><li>在训练模型之前获得数据贡献者的同意。</li><li>创作者可选择是否从模型基于他们作品生成的后续创作中获益。</li><li>同意其数据被使用的创作者可以根据他们的作品对AIGC的贡献每次查询工具时获得奖励。</li></ul><h5 id="（8）环境影响"><a href="#（8）环境影响" class="headerlink" title="（8）环境影响"></a>（8）环境影响</h5><p> 模型通常具有数十亿甚至数万亿的参数，导致在模型训练和操作过程中产生高昂的环境成本。</p><p>如何减少AIGC模型能耗和碳排放？</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 论文阅读 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 大语言模型 </tag>
+            
+            <tag> AIGC </tag>
+            
+            <tag> 生成式AI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Cherish’s Blog --- test 1</title>
+      <link href="/2024/07/14/hello-world/"/>
+      <url>/2024/07/14/hello-world/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+  
+  
+</search>
