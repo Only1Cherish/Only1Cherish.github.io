@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击</title>
+      <link href="/2024/08/08/SafeDecoding/"/>
+      <url>/2024/08/08/SafeDecoding/</url>
+      
+        <content type="html"><![CDATA[<p>SafeDecoding是一种安全意识的解码策略，用于生成对用户查询有帮助且无害的响应。基于观察：尽管代表有害内容的标记的概率超过了代表无害响应的标记，安全声明仍然出现在按概率降序排列的顶级标记中。这使我们能够通过识别安全声明并增加它们的标记概率，同时减弱与越狱攻击目标一致的标记序列的概率，来减轻越狱攻击。</p><span id="more"></span>        <p>原文地址：<a href="https://arxiv.org/pdf/2402.08983">2402.08983 (arxiv.org)</a></p><ul><li><h3 id="WHY：背景分析"><a href="#WHY：背景分析" class="headerlink" title="WHY：背景分析"></a>WHY：背景分析</h3><ul><li><p>背景现状</p><ul><li>越狱攻击<ul><li>经验性越狱攻击：提示工程，竞争目标和泛化不匹配。说服分类法越狱LLMs。解码设置的变更可越狱开源模型。基于ASCII的提示来越狱LLMs。LLMs多语言越狱的挑战。</li><li>基于优化的对抗性攻击：(1)基于梯度的方法使用梯度优化和生成对抗性输入；(2)基于遗传算法的方法利用变异和交叉来发现有效的越狱提示；(3)基于编辑的方法利用预训练的LLM来修改和增强对抗性提示，以颠覆对齐。</li></ul></li><li>现有的防御措施（包括输入扰动、输入和输出检测以及提示演示）缺乏有效性，在推理时间上成本高昂，并且可能在为善意用户服务时影响LLMs的有用性。<ul><li>基于检测的防御：内容过滤策略，包括关键词匹配和语义分析。输入困惑度作为检测机制来防御基于优化的攻击。利用LLM本身检测是否生成了有害内容。SmoothLLM随机扰动给定输入的多个副本，然后聚合相应的预测来检测对抗性输入。RA-LLM结合了一个基于稳健对齐的LLM的对齐检查功能，并在用户查询未通过对齐检查时拒绝它。</li><li>基于缓解的防御：RAIN允许预训练的LLM评估模型输出，并使用评估结果指导可回滚的生成以实现AI安全。拒绝回答有害提示的上下文演示可以增强模型的鲁棒性。利用系统提示中的自我提醒来提醒LLMs负责任地回应，降低越狱攻击的成功率。采用提示演示和对抗性训练的组合，优先考虑安全性而非有用性，从而增强对越狱攻击的防御(SafeDecoding属于这一类)。</li><li>与现有方法相比，SafeDecoding利用标记概率，并在不损害LLMs在服务善意用户时的性能的同时缓解越狱攻击。</li></ul></li></ul></li><li><p>SafeDecoding方法</p><ul><li><p>通过引入对越狱成功的新视角来保护LLMs免受越狱攻击</p></li><li><p>案例观察分析（在GCG攻击下 Vicuna-7B 模型token概率）</p><ul><li><img src="/img/SDexm.png" alt="header"></li></ul><p>GCG攻击（Generative Controlled Graph attack）是一种针对大型语言模型（LLMs）的攻击方式，它利用了模型生成文本时的解码策略，尝试引导模型生成攻击者预定的输出。GCG攻击通过构造特定的输入（即提示或问题），操纵模型的解码过程，使其偏向于生成攻击者所期望的响应。</p><ul><li>1、越狱攻击的成功可以归因于与攻击目标一致的token概率的主导地位 ，这可能导致在生成无害内容时广泛使用的解码策略（如贪婪和top-k）的潜在失败</li><li>2、尽管模型表现出非预期行为，但代表安全声明的token，如“对不起，我无法满足您的请求。”存在于样本空间中。这揭示了模型对越狱攻击的固有意识。</li></ul></li><li><p>关键思想：有策略地识别安全声明并放大它们的token概率，同时减弱与攻击者目标一致的token序列的概率。</p></li></ul></li></ul></li><li><h3 id="WHAT：技术实现"><a href="#WHAT：技术实现" class="headerlink" title="WHAT：技术实现"></a>WHAT：技术实现</h3><ul><li><p>SafeDecoding概览</p><ul><li>设定要求<ul><li>有帮助性：解码策略不应该损害对良性查询响应的质量。部署解码策略的LLMs应对良性用户保持有帮助。</li><li>高效率：解码策略需要轻量级。部署解码策略的LLMs所产生的计算开销应该与不采用解码策略的相当。</li><li>兼容性：由不同开发者训练的LLMs具有不同的架构和参数。解码策略需要与具有不同特征和参数的LLMs兼容。</li></ul></li><li>策略<ul><li>i）减弱与攻击者目标一致的token序列的概率</li><li>ii）增强符合人类价值观包括安全的token序列的概率。</li></ul></li><li>流程图<ul><li><img src="/img/SDframe.png" alt="header"></li></ul></li></ul></li><li><p>训练阶段：构建专家模型</p><ul><li><p>过程概览</p><ul><li><img src="/img/SDstep1.png" alt="header"></li></ul><p><strong>不使用公开数据集的原因</strong>：使用公开的有监督微调数据集可能会引起原始模型的标记分布显著变化，尤其是影响序列的初始标记。</p></li></ul></li><li><p>推理阶段：构建新的标记分布</p><ul><li><p>step1：构建样本空间</p><ul><li><p><img src="/img/SDstep2.png" alt="header"></p></li><li><p>Vn中的token更可能对良性输入查询生成多样化和高质量的响应</p></li><li><p>V′n中的token更可能与人类价值观一致</p></li><li><p>用较小的c值生成的响应可能缺乏多样性，对用户帮助较小</p></li></ul></li><li><p>step2：定义概率函数</p><ul><li><p><img src="/img/SDP.png" alt="header"></p></li><li><p>如果标记x符合人类价值观，pθ′(x|x1:n−1)−pθ(x|x1:n−1)&gt;0</p></li><li><p>如果x引发不安全行为，则&lt;0</p></li><li><p>α≥0是一个超参数，用来确定分配给原始模型和专家模型的权重</p></li></ul></li></ul></li><li><p>SafeDecoding解码应用</p><ul><li>在解码过程的前m步应用SafeDecoding来引导响应生成。降低计算要求以及提高生成效率。</li></ul></li></ul></li><li><h3 id="HOW：应用效果"><a href="#HOW：应用效果" class="headerlink" title="HOW：应用效果"></a>HOW：应用效果</h3><ul><li><p>实验设置</p><ul><li>实验模型：Vicuna-7b、Llama2-7b-chat、Guanaco-7b、Falcon-7b、Dolphin-llama2-7b</li><li>攻击方式：GCG（基于梯度的攻击），AutoDAN（基于遗传算法的攻击），PAIR和SAP30（基于编辑的攻击）。DeepInception和GPTFuzzer-Template（经验性越狱攻击）</li><li>有害查询基准数据集：Advbench和HEx-PHI</li><li>Baseline：PPL和SelfExamination是基于输入和输出检测的方法，Paraphrase、Retokenization、Self-Remind和ICD是基于缓解的方法</li><li>评估指标<ul><li>攻击成功率（ASR）<ul><li><img src="/img/SDgoal1.png" alt="header"></li></ul></li><li>有害得分（Harmful Score）：采用GPT-4对模型响应的危害得分进行评分，范围从1到5，其中1表示无害，5表示极度有害。</li><li>有用性：MTbench和Just-Eval<ul><li>MT-bench评估LLMs在八个类别上的指令遵循能力：写作、角色扮演、提取、推理、数学、编码、STEM和人文学科。</li><li>来自Just-Eval的800个多样化指令来评估LLM输出在有用性、清晰度、事实性、深度和参与度方面的性能。</li></ul></li><li>效率指标（ATGR）<ul><li><img src="/img/SDgoal2.png" alt="header"></li></ul></li></ul></li></ul></li><li><p>实验结果</p><ul><li><p>ASR和有害得分</p><ul><li><p><img src="/img/SDtest1.png" alt="header"></p></li><li><p>对于安全对齐较弱的模型，例如Vicuna，SafeDecoding显著降低了ASR和有害得分，几乎超越了所有基线防御。</p></li><li><p>当所有其他防御措施未能减轻DeepInception的影响时，SafeDecoding成功地防御了它，实现了0%的ASR。</p></li><li><p>对于已经很好地对齐的模型（例如Llama2），SafeDecoding将所有攻击的ASR降至接近0%。</p></li><li><p>我们在附录B.1中展示了SafeDecoding在Guanaco（Dettmers等人，2023年）、Falcon（Penedo等人，2023年）和Dolphin（Hartford，2023年）模型上的额外结果。</p></li></ul></li><li><p>MT-bench和Just-Eval得分</p><ul><li><p><img src="/img/SDtest2.png" alt="header"></p></li><li><p>对于MT-bench，SafeDecoding的效用基本保持不变，在Vicuna中只有1%的微小偏差，在Llama2中为5%</p></li><li><p>对于Just-Eval，有用性和深度的下降在5%以内</p></li></ul></li><li><p>效率指标ATGR</p><ul><li><p><img src="/img/SDtest3.png" alt="header"></p></li><li><p>与没有防御相比，SafeDecoding在Llama2中的开销时间仅为3%，在Vicuna中为7%</p></li></ul></li></ul></li><li><p>消融实验</p><ul><li><p><img src="/img/SDtest4.png" alt="header"></p></li><li><p>top-p采样对防御性能有轻微影响，随着p的增加，ASR上升。</p></li><li><p>当α≥3、m≥2和c≥7时，SafeDecoding对这些超参数不敏感。</p></li></ul></li><li><p>局限性</p><ul><li>语义转换<ul><li>在一些罕见的情况下（250个响应中的31个），模型可能最初拒绝了一个有害的查询，但随后又同意了它。</li></ul></li><li>多模态大型语言模型<ul><li>本文的主要关注点是大型语言模型，因此对SafeDecoding的调查范围和性能评估仅限于这些模型。SafeDecoding在新兴的多模态大型语言模型（Wu等人，2023b）上部署时的性能，如GPT-4V还未知。</li></ul></li></ul></li></ul></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 论文阅读 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 大语言模型 </tag>
+            
+            <tag> 越狱攻击 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉</title>
       <link href="/2024/07/25/F2/"/>
       <url>/2024/07/25/F2/</url>
