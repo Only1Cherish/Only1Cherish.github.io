@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models | 学无止境</title><meta name="author" content="Cherish"><meta name="copyright" content="Cherish"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="尽管越狱提示可能产生与良性提示相似的输出logit，但在模型潜在空间中的初始嵌入倾向于与恶意提示的嵌入更为相似。利用这一发现，我们提出使用LLMs的早期Transformer输出作为检测恶意输入的手段，并立即终止生成。基于这一理念，我们引入了一个名为EEG-Defender的简单但重要的防御方法，用于LLMs。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models">
+<meta property="og:url" content="https://only1cherish.github.io/2024/08/22/EEG/index.html">
+<meta property="og:site_name" content="学无止境">
+<meta property="og:description" content="尽管越狱提示可能产生与良性提示相似的输出logit，但在模型潜在空间中的初始嵌入倾向于与恶意提示的嵌入更为相似。利用这一发现，我们提出使用LLMs的早期Transformer输出作为检测恶意输入的手段，并立即终止生成。基于这一理念，我们引入了一个名为EEG-Defender的简单但重要的防御方法，用于LLMs。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://only1cherish.github.io/img/cover.jpg">
+<meta property="article:published_time" content="2024-08-22T12:10:17.000Z">
+<meta property="article:modified_time" content="2024-08-22T14:13:30.260Z">
+<meta property="article:author" content="Cherish">
+<meta property="article:tag" content="大语言模型">
+<meta property="article:tag" content="越狱攻击">
+<meta property="article:tag" content="Decoding-based Defense">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://only1cherish.github.io/img/cover.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://only1cherish.github.io/2024/08/22/EEG/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":false,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-22 22:13:30'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/shuoshuo/"><i class="fa-fw fa fa-comments-o"></i><span> 分享</span></a></li><li><a class="site-page child" href="/photos/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影视</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/archive.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="学无止境"><span class="site-name">学无止境</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 归档</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 生活</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/shuoshuo/"><i class="fa-fw fa fa-comments-o"></i><span> 分享</span></a></li><li><a class="site-page child" href="/photos/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影视</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-22T12:10:17.000Z" title="发表于 2024-08-22 20:10:17">2024-08-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-22T14:13:30.260Z" title="更新于 2024-08-22 22:13:30">2024-08-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>尽管越狱提示可能产生与良性提示相似的输出logit，但在模型潜在空间中的初始嵌入倾向于与恶意提示的嵌入更为相似。利用这一发现，我们提出使用LLMs的早期Transformer输出作为检测恶意输入的手段，并立即终止生成。基于这一理念，我们引入了一个名为EEG-Defender的简单但重要的防御方法，用于LLMs。</p>
+<span id="more"></span>        
+
+<p>原文地址<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2408.11308">2408.11308 (arxiv.org)</a></p>
+<h2 id="WHY"><a href="#WHY" class="headerlink" title="WHY"></a>WHY</h2><h3 id="解码防御的不足"><a href="#解码防御的不足" class="headerlink" title="解码防御的不足"></a>解码防御的不足</h3><p> 目前基于解码的防御技术还不够充分。研究表明，现有的防御方法只能将针对越狱提示的攻击成功率（ASR）降低大约50%</p>
+<h3 id="LLM内不同层的作用"><a href="#LLM内不同层的作用" class="headerlink" title="LLM内不同层的作用"></a>LLM内不同层的作用</h3><ul>
+<li>初始层专门用于<strong>触发特定任务</strong>。</li>
+<li>中间层作为知识库，塑造输出的<strong>情感基调</strong>。</li>
+<li>后续层是语言<strong>输出细化</strong>的地方。<br>  关键假设<ul>
+<li><p>鉴于语言只影响我们的传递方式，而不是表达的语义</p>
+</li>
+<li><p>假设LLMs在<strong>初始层</strong>识别功能和<strong>中间层</strong>访问存储知识时，对越狱和有害提示的处理方式相似。<br>可行性证明<br>两个假设<br><strong>1. 越狱的机制是它们的嵌入在输出空间中从“有害”移向“良性”</strong><br><strong>2. LLMs的浅层可以区分越狱提示</strong><br><img src="/img/EEGlayer.png" alt="header"><br>越狱提示（黑点）良性提示（蓝点）有害提示（红点)</p>
+<ol>
+<li>有害提示是直接请求有害或非法行为的提示。</li>
+<li>越狱提示是复杂的，可能包括压抑性否定和虚拟语境，或对抗性后缀。良好对齐的LLMs可以拒绝简单的有害提示，但可能仍然接受越狱提示。</li>
+<li>良性提示。这些是遵守道德准则的用户提示，请求LLMs提供帮助，而不违反任何规范。<br>数据集<br> 从Alpaca Eval收集了60个良性提示，从AdvBench收集了60个有害提示。然后，我们评估了由GCG、AutoDAN、GPTFuzz）和Tap生成的60个越狱提示，所有提示均有效越狱。<br>结果</li>
+</ol>
+<ul>
+<li>从模型的早期层（例如，第6层和第8层）开始，越狱提示的嵌入与有害提示的嵌入一致。</li>
+<li>在中间层（例如，第12层），当LLMs检索信息时，<strong>越狱嵌入向良性嵌入轻微转移</strong></li>
+<li>到了更高层（例如，第28层和第32层），它们与良性嵌入越来越一致。</li>
+<li>最终，越狱嵌入要么分布在整个空间中（如Llama2所见），要么与决策边界一起分布（如Vicuna和Guanaco所见），这使得模型在识别越狱状态时变得复杂。<br><strong>浅层更好区分越狱的证明</strong><img src="/img/EEGlayer1.png" alt="header"><br>  收集了所有层的良性提示和被拒绝的有害提示的嵌入，并分别训练了32个MLP分类器和32个原型分类器，对应于每层的输出。使用这两组分类器来识别模型无法拒绝的越狱提示。<br>  结果<br>  <strong>早期层收集的分类器比从后来层收集的分类器表现得更好。</strong><br>  在区分越狱提示方面，两种模型的准确率在第十二层之前都超过了80%。更应该关注早期和中间层空间而不是输出空间。</li>
+</ul>
+<p>&#x3D;&#x3D;利用良性提示和被拒绝的有害提示作为每个层输出的锚点。如果来自早期和中间层的嵌入与有害锚点足够相似，模型将拒绝用户的请求。&#x3D;&#x3D;</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="主要贡献"><a href="#主要贡献" class="headerlink" title="主要贡献"></a>主要贡献</h3><ul>
+<li><strong>LLMs的类人生成过程。</strong> 研究揭示了LLMs的生成过程与人类语言组织相似。（生成概念-&gt;调用知识-&gt;组织语言）!<img src="/img/EEGgenerate.png" alt="header"></li>
+<li><strong>越狱的潜在空间机制。</strong> 展示了早期和中间层中越狱提示的嵌入与有害提示非常相似，但在后期层中向良性提示转变。</li>
+<li><strong>通过早期退出防御越狱。</strong> 基于我们对LLM越狱的洞见，我们提出了EEG-Defender。EEG-Defender将攻击成功率（ASR）降低了大约85%，对抗现有的越狱方法，几乎不需要计算成本。</li>
+</ul>
+<h2 id="WHAT"><a href="#WHAT" class="headerlink" title="WHAT"></a>WHAT</h2><p><img src="/img/EEGframe.png" alt="header"></p>
+<h3 id="早期退出生成和分类器（Early-Exit-Generation-and-Classifiers）"><a href="#早期退出生成和分类器（Early-Exit-Generation-and-Classifiers）" class="headerlink" title="早期退出生成和分类器（Early Exit Generation and Classifiers）"></a>早期退出生成和分类器（Early Exit Generation and Classifiers）</h3><h4 id="步骤I-构建提示池"><a href="#步骤I-构建提示池" class="headerlink" title="步骤I 构建提示池"></a>步骤I 构建提示池</h4><p><img src="/img/EEGstep1.png" alt="header"></p>
+<h4 id="步骤II-训练分类器"><a href="#步骤II-训练分类器" class="headerlink" title="步骤II 训练分类器"></a>步骤II 训练分类器</h4><ol>
+<li><strong>收集嵌入</strong>：首先，对于每个提示，LLM会生成第一个标记的嵌入。这里假设LLM有n层，每一层都会为每个提示生成一个嵌入向量。对于一个特定的提示pi，这些嵌入向量组成了一个集合Ei &#x3D; {ei1, ei2, …, ein}，其中eij是提示pi在第j层的嵌入。</li>
+<li><strong>选择分类器类型</strong>：使用原型分类器，基于类别样本的均值嵌入来进行分类。</li>
+<li><strong>计算原型</strong>：对于每个类别k，其原型gki是通过计算该类别中所有样本嵌入的均值来得到的。这里，P′k表示集合P′中属于类别k的样本集。在第i层，类别k的原型gki计算公式如下：<br>$$<br> g_{ki} &#x3D; \frac{1}{|P’<em>k|} \sum</em>{x_j \in P’<em>k} e</em>{ji}<br>$$<br>其中，eji是样本xj在第i层的嵌入，∣Pk′∣ 是类别k的样本数量。</li>
+<li><strong>确定分类结果</strong>：对于每个样本的嵌入e在第i层，分类器会确定其最可能属于的类别。这是通过计算样本嵌入与每个类别原型之间的余弦距离来实现的，分类结果ci由以下公式确定：<br>$$<br>c_i &#x3D; \text{argmin}<em>k , d(e_i, g</em>{ki})<br>$$<br> 其中，d表示余弦距离，计算公式如下：<br>$$<br>d(e_i, g_{ki}) &#x3D; 1 - \frac{e_i \cdot g_{ki}}{|e_i| |g_{ki}|}<br>$$<br>余弦距离衡量了两个向量的夹角，值越小表示向量越相似。</li>
+</ol>
+<h4 id="步骤III-安全生成"><a href="#步骤III-安全生成" class="headerlink" title="步骤III 安全生成"></a>步骤III 安全生成</h4><ol>
+<li><p><strong>使用分类器</strong>：利用步骤II中训练得到的分类器，对每个提示进行分类，判断其是否有害。</p>
+</li>
+<li><p><strong>累积正面计数器</strong>：EEG框架设有一个名为“有害性得分”的累积正面计数器。这个计数器记录了分类器判断为有害的提示次数。</p>
+</li>
+<li><p><strong>超参数控制</strong>：有两个超参数α和t，分别用来控制：<br>$$<br>x_{s+1:}’ &#x3D;<br>\begin{cases}<br>\text{Refuse to answer} &amp; \text{if } \sum_{i&#x3D;1}^{\left\lfloor \alpha \times n \right\rfloor} c_i &gt; t \<br>x_{s+1:} &amp; \text{otherwise}<br>\end{cases}<br>$$</p>
+<ul>
+<li>α：决定考虑的层数占总层数的比例。例如，如果α设置为0.5，则考虑前50%的层。</li>
+<li>t：设定一个阈值，当有害性得分超过这个阈值时，模型将拒绝生成响应。</li>
+</ul>
+</li>
+<li><p><strong>生成决策</strong>：如果早期层的分类器累积的有害性得分超过阈值t，则模型拒绝生成响应。否则，模型继续生成过程。</p>
+</li>
+</ol>
+<h3 id="EEG-Defender框架："><a href="#EEG-Defender框架：" class="headerlink" title="EEG-Defender框架："></a>EEG-Defender框架：</h3><p>EEG-Defender是一个集成到基于Transformer的大型语言模型中的防御机制，其工作原理如下：</p>
+<ol>
+<li><strong>输入提示处理</strong>：当用户输入一个提示时，EEG-Defender从第一层开始，使用嵌入向量来计算有害性得分。</li>
+<li><strong>计算有害性得分</strong>：EEG-Defender在生成第一个标记之前，会一直计算到 ⌊α×n⌋层的嵌入，累加分类器判断为有害的提示次数。</li>
+<li><strong>阈值判断</strong>：如果有害性得分达到或超过阈值t，LLM将立即停止生成过程，并输出一个标准拒绝响应，如“对不起，我无法回答这个问题”。</li>
+</ol>
+<ul>
+<li><strong>无需额外训练</strong>：EEG-Defender评估提示的内部表示，不需要对原始LLM进行额外的微调或重新训练，使其成为一个即插即用的组件。</li>
+<li><strong>防御效果</strong>：通过在早期层进行分类并设置阈值，EEG-Defender能够有效地识别并阻止越狱攻击，同时保持对良性提示的响应。</li>
+</ul>
+<h2 id="HOW"><a href="#HOW" class="headerlink" title="HOW"></a>HOW</h2><h3 id="实验准备"><a href="#实验准备" class="headerlink" title="实验准备"></a>实验准备</h3><ol>
+<li><strong>原型中心的计算</strong>：使用toxic-chat训练数据集中的拒绝提示和良性提示来计算原型中心。这些中心点代表了两类提示在嵌入空间中的典型表示。</li>
+<li><strong>确定嵌入距离</strong>：通过计算目标提示与两类原型之间的余弦相似度来确定决策边界。如果一个提示的嵌入点与有害原型的相似度高于某个阈值，它可能被认为是有害的。</li>
+<li><strong>模型和设置</strong><ul>
+<li>实验涉及三种大型语言模型（LLMs）：Vicuna-7b、Llama-2-7b chat和Guanaco-7b。</li>
+<li>设置早期层比率α为0.75，评估过程中将考虑模型的前75%层。</li>
+<li>有害性得分限制t分别设置为Vicuna和Guanaco的12，Llama2的11。</li>
+</ul>
+</li>
+<li><strong>数据集</strong><ul>
+<li>十种攻击方式：包括GCG、AutoDAN、GPTFuzz、TAP、Pair等。由于Llama2和Vicuna无法解析base64编码，还选择了五种基于竞争目标的攻击方法。</li>
+<li>越狱提示准备：从Zou等人（2023年）的数据集中随机选择50个有害问题，并为每个问题生成多个提示。总共生成了750个越狱提示。</li>
+</ul>
+</li>
+<li><strong>基线方法</strong>：<ul>
+<li>三种基于提示的防御方法（PPL、ICD和Self-Reminder）</li>
+<li>两种基于解码的防御方法（SafeDecoding和RA-LLM）</li>
+</ul>
+</li>
+<li><strong>评估指标</strong>：<ul>
+<li>采用攻击成功率（ASR）：衡量越狱提示成功绕过防御机制的比例</li>
+<li>良性回答率（BAR）：衡量良性输入成功通过防御过滤器的比例</li>
+<li>EEG-Defender对模型有用性的影响，收集了300个良性提示，并使用这些提示来测试模型在启用EEG-Defender后的响应。</li>
+</ul>
+</li>
+</ol>
+<h3 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h3><p><img src="/img/EEGresult.png" alt="header"></p>
+<p>EEG-Defender能够在保持高BAR的同时减少大约85%的ASR。相比之下，基于提示的防御方法（例如，PPL、ICD、Self-Reminder）显著降低了Llama2模型的效用，限制了它们的适用性。</p>
+<h3 id="实验分析"><a href="#实验分析" class="headerlink" title="实验分析"></a>实验分析</h3><p><strong>解码方法的分析</strong></p>
+<ul>
+<li>Llama的良性和有害嵌入比Vicuna的更为多样化（蓝点更分散）。因此，增加拒绝概率（例如，SafeDecoding）或使用随机丢弃多次采样（例如，RA-LLM）使得良性提示产生拒绝响应的可能性较小，导致Llama的BAR性能优于Vicuna。</li>
+<li>Llama中的越狱提示更加多样化，与决策边界的对齐程度较低，如果它们靠近良性提示中心，则不太可能被拒绝。</li>
+<li>基于解码的方法在平衡BAR和ASR方面的挑战是由于它们&#x3D;&#x3D;严重依赖最终层嵌入，这忽略了LLMs的早期和中间层&#x3D;&#x3D;<br><img src="/img/EEGresult1.png" alt="header"><br><strong>超参数α的分析</strong></li>
+<li>随着超参数α的增加，ASR最初减少然后增加。</li>
+<li>当包含在最后一层训练的分类器时（α &#x3D; 1），平均ASR比α &#x3D; 0.75增加了5%。</li>
+<li>&#x3D;&#x3D;最后一层的越狱嵌入更接近良性提示，而后期层分类器的准确性较低&#x3D;&#x3D;<br><strong>超参数t的分析</strong></li>
+<li>随着有害性得分的增加，BAR和ASR都上升。</li>
+<li>一旦超过某个阈值，BAR的增长速度减慢，而ASR的增长速度加快。这可能表明EEG-Defender的t的最优值已经达到。<br><img src="/img/EEGresult2.png" alt="header"><br><strong>原型影响的分析</strong></li>
+<li>使用原始提示池P来构建分类器。这个版本被称为EEG-JPS</li>
+<li>EEG-JPS在ASR和BAR方面的表现都不如EEG-Defender。</li>
+<li>这可能是因为在提示池中包含越狱提示可能会使有害原型的中心更接近良性原型，使得区分这两类变得更加具有挑战性。</li>
+</ul>
+<h3 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h3><ul>
+<li>EEG-Defender的应用范围。主要关注单轮越狱攻击方法。然而，多轮越狱攻击可能变得更加普遍，尚未在多轮对话中评估这些攻击。</li>
+<li>EEG-Defender的性能。对于某些攻击方法，我们的结果并不像其他方法那样显著（例如，Vicuna的GCG和Llama的Pair）。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://only1cherish.github.io">Cherish</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://only1cherish.github.io/2024/08/22/EEG/">https://only1cherish.github.io/2024/08/22/EEG/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://only1cherish.github.io" target="_blank">学无止境</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/">大语言模型</a><a class="post-meta__tags" href="/tags/%E8%B6%8A%E7%8B%B1%E6%94%BB%E5%87%BB/">越狱攻击</a><a class="post-meta__tags" href="/tags/Decoding-based-Defense/">Decoding-based Defense</a></div><div class="post_share"><div class="social-share" data-image="/img/cover.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/08/16/PARDEN/" title="论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击"><img class="cover" src="/img/cover.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/08/08/SafeDecoding/" title="论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击"><img class="cover" src="/img/cover.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-08</div><div class="title">论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击</div></div></a></div><div><a href="/2024/08/16/PARDEN/" title="论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击"><img class="cover" src="/img/cover.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-16</div><div class="title">论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击</div></div></a></div><div><a href="/2024/07/25/F2/" title="论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉"><img class="cover" src="/img/cover.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-25</div><div class="title">论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉</div></div></a></div><div><a href="/2024/07/14/a/" title="论文阅读:A Pathway Towards Responsible AI Generated Content"><img class="cover" src="/img/cover.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-14</div><div class="title">论文阅读:A Pathway Towards Responsible AI Generated Content</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Cherish</div><div class="author-info__description">逃避解决不了问题！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#WHY"><span class="toc-number">1.</span> <span class="toc-text">WHY</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E7%A0%81%E9%98%B2%E5%BE%A1%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.1.</span> <span class="toc-text">解码防御的不足</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLM%E5%86%85%E4%B8%8D%E5%90%8C%E5%B1%82%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">LLM内不同层的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E8%B4%A1%E7%8C%AE"><span class="toc-number">1.3.</span> <span class="toc-text">主要贡献</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WHAT"><span class="toc-number">2.</span> <span class="toc-text">WHAT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A9%E6%9C%9F%E9%80%80%E5%87%BA%E7%94%9F%E6%88%90%E5%92%8C%E5%88%86%E7%B1%BB%E5%99%A8%EF%BC%88Early-Exit-Generation-and-Classifiers%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">早期退出生成和分类器（Early Exit Generation and Classifiers）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4I-%E6%9E%84%E5%BB%BA%E6%8F%90%E7%A4%BA%E6%B1%A0"><span class="toc-number">2.1.1.</span> <span class="toc-text">步骤I 构建提示池</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4II-%E8%AE%AD%E7%BB%83%E5%88%86%E7%B1%BB%E5%99%A8"><span class="toc-number">2.1.2.</span> <span class="toc-text">步骤II 训练分类器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4III-%E5%AE%89%E5%85%A8%E7%94%9F%E6%88%90"><span class="toc-number">2.1.3.</span> <span class="toc-text">步骤III 安全生成</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#EEG-Defender%E6%A1%86%E6%9E%B6%EF%BC%9A"><span class="toc-number">2.2.</span> <span class="toc-text">EEG-Defender框架：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HOW"><span class="toc-number">3.</span> <span class="toc-text">HOW</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E5%87%86%E5%A4%87"><span class="toc-number">3.1.</span> <span class="toc-text">实验准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">3.2.</span> <span class="toc-text">实验结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E5%88%86%E6%9E%90"><span class="toc-number">3.3.</span> <span class="toc-text">实验分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">3.4.</span> <span class="toc-text">局限性</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/08/22/EEG/" title="论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models"><img src="/img/cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models"/></a><div class="content"><a class="title" href="/2024/08/22/EEG/" title="论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models">论文阅读：EEG-Defender ： Defending against Jailbreak through Early Exit Generation of Large Language Models</a><time datetime="2024-08-22T12:10:17.000Z" title="发表于 2024-08-22 20:10:17">2024-08-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/16/PARDEN/" title="论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击"><img src="/img/cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击"/></a><div class="content"><a class="title" href="/2024/08/16/PARDEN/" title="论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击">论文阅读：PARDEN, CanYouRepeat That? Defending against Jailbreaks via Repetition——通过重复来防御越狱攻击</a><time datetime="2024-08-16T01:17:06.000Z" title="发表于 2024-08-16 09:17:06">2024-08-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/08/08/SafeDecoding/" title="论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击"><img src="/img/cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击"/></a><div class="content"><a class="title" href="/2024/08/08/SafeDecoding/" title="论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击">论文阅读：SafeDecoding： Defending against Jailbreak Attacks via Safety-Aware Decoding——SafeDecoding通过安全意识解码防御越狱攻击</a><time datetime="2024-08-08T09:17:06.000Z" title="发表于 2024-08-08 17:17:06">2024-08-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/25/F2/" title="论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉"><img src="/img/cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉"/></a><div class="content"><a class="title" href="/2024/07/25/F2/" title="论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉">论文阅读：Mitigating Large Language Model Hallucination with Faithful Finetuning——通过忠诚微调减轻大型语言模型幻觉</a><time datetime="2024-07-25T12:29:05.000Z" title="发表于 2024-07-25 20:29:05">2024-07-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/14/a/" title="论文阅读:A Pathway Towards Responsible AI Generated Content"><img src="/img/cover.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="论文阅读:A Pathway Towards Responsible AI Generated Content"/></a><div class="content"><a class="title" href="/2024/07/14/a/" title="论文阅读:A Pathway Towards Responsible AI Generated Content">论文阅读:A Pathway Towards Responsible AI Generated Content</a><time datetime="2024-07-14T08:01:35.000Z" title="发表于 2024-07-14 16:01:35">2024-07-14</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Cherish</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>
